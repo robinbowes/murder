@@ -26,15 +26,11 @@ namespace :murder do
 
     # TODO: Skip hidden (.*) files
     # TODO: Specifyable tmp file
-    set :local_tmp_dir, '/tmp/murder'
-    set :remote_tmp_dir, '/tmp'
-    set :murder_tarball, 'murder_dist.tgz'
-    system "mkdir -p #{local_tmp_dir}"
-    system "tar -c -z -C #{dist_path} -f #{local_tmp_dir}/#{murder_tarball} ."
-    upload("#{local_tmp_dir}/#{murder_tarball}", "#{remote_tmp_dir}/#{murder_tarball}", :via => :sftp)
-    run "tar xf #{remote_tmp_dir}/#{murder_tarball} -C #{remote_murder_path}"
-    run "rm #{remote_tmp_dir}/#{murder_tarball}"
-    system "rm #{local_tmp_dir}/#{murder_tarball}"
+    system "tar -c -z -C #{dist_path} -f /tmp/murder_dist_to_upload.tgz ."
+    upload("/tmp/murder_dist_to_upload.tgz", "/tmp/murder_dist.tgz", :via => :sftp)
+    run "tar xf /tmp/murder_dist.tgz -C #{remote_murder_path}"
+    run "rm /tmp/murder_dist.tgz"
+    system "rm /tmp/murder_dist_to_upload.tgz"
   end
 
   desc "Starts the Bittorrent tracker (essentially a mini-web-server) listening on port 8998."
@@ -49,11 +45,11 @@ namespace :murder do
 
   desc "Identical to stop_seeding, except this will kill all seeding processes. No 'tag' argument is needed."
   task :stop_all_seeding, :roles => :seeder do
-    run("pkill -f \"SCREEN.*seeder-\"")
+  run("pkill -f \"SCREEN.*seeder-\"")
   end
 
   desc 'Sometimes peers can go on forever (usually because of an error). This command will forcibly kill all "murder_client.py peer" commands that are running.'
   task :stop_all_peering, :roles => :peer do
-    run("pkill -f \"murder_client.py peer\"")
+  run("pkill -f \"murder_client.py peer\"")
   end
-end
+  end
